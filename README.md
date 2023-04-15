@@ -3,8 +3,11 @@
 
 
 现在有两个版本  music.html 可以不用VPN  music-VPN.html 要VPN
+
 有的歌普通版就是获取不到，不要奇怪
+
 目测VPN都行
+
 获取不了看控制台报了什么错
                       普通版              VPN版
 code 403             就是获取不到         多试几次
