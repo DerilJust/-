@@ -1,5 +1,5 @@
 # -
-刚学
+刚学 很多地方写的很乱 有空改善一下
 
 
 现在有两个版本  music.html 可以不用VPN  music-VPN.html 要VPN
