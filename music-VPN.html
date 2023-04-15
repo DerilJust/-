@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./music.css">
+</head>
+<body>
+    <div class="BilibiliAudio">
+        <h1>Bilibili 视频的音频播放器</h1>
+        <input type="text" id="video_id" placeholder="请输入视频ID(BV号)">
+        <button id="get_audio">获取音频</button>
+        <div id="title_text">视频标题</div>
+        <div class="addlistpic">
+            <img id="addlist"  src="icon\musiclist.png">
+        </div>
+        <h2>历史搜索记录:</h2>
+        <ul id="recentTitles"></ul>
+        <button type="file" class="savelist" onclick="saveToJson()">保存歌单</button>
+        <input type="file" id="importFile" style="display: none;">
+        <button class="importlist" onclick="importFromJson()">导入歌单</button>
+    </div>
+    <div class="carousel">
+        <button id="prev_image" class="carousel-control"><</button>
+        <img id="carousel_image" class="carousel-image" style="transition: 1s" src="" alt="快试试输入bv号获取音频吧"/>
+        <button id="next_image" class="carousel-control">></button>
+    </div>
+    <div class="aiicon" id="ai_icon">
+        <img class="aiiconpic" src="./img/AI.webp">
+    </div>
+    <div class="chatgpt">
+        <div class="chat">
+            <div class="my">
+                <div>你好！</div>
+                <img src="./img/user.webp">
+            </div>
+            <div class="ai">
+                <img src="./img/AI.webp">
+                <div>你好！</div>
+            </div>
+        </div>
+        <div class="sendMessage">
+            <input type="text" placeholder="来尝试问问问题吧！" id="robot">
+        </div>
+    </div>
+    <div class="player">
+        <div class="currentMusicBigBox">
+            <div class="currentMusicBox">
+            <span class="currentMusic">请播放音乐</span>
+            </div>
+        </div>
+        <div class="center">
+            <div class="volume-container">
+                <img src="icon\soundsize.png">
+                <input id="volume" class="volume-bar" type="range" min="0" max="100" value="30" step="1">
+                <span id="volume-value">30</span>
+            </div>
+            <img class="prev_song" src="icon\previous.png">
+            <div class="musicP">
+                <img class="musicPicture" src="./1.webp">
+                <div class="play-pause">
+                    <img class="play-icon" src="icon/play.png">
+                    <img class="pause-icon" src="icon/paused.png" style="display: none;">
+                </div>
+            </div>
+            <img class="next_song" src="icon\nextsong.png">
+            <div class="time">
+                <span id="current-time">00:00</span>
+                <span>/</span>
+                <span id="total-time">00:00</span>
+            </div>
+            <div class="progress-container">
+                <input id="progress" class="progress-bar" type="range" min="0" max="100" value="0" step="1">
+            </div>
+            <div class="playlist-container">
+                <img class="musiclist-icon" src="icon\musiclist.png">
+                <ul class="playlist">
+                    <!-- <li>天空之外</li> -->
+                    <!-- <span></span> -->
+                </ul>
+            </div>
+            <button id="switch_playlist">切换歌单</button>
+        </div>
+    </div>
+    <audio id="audio_player" onended="nextSong()" src=""></audio>
+    <script>
+
+        var moveable = document.getElementById('ai_icon');
+        var moveDistance = -80; // 元素移动的距离
+
+        moveable.addEventListener('mouseover', () => {
+        moveable.style.right = `${moveDistance}px`;
+        });
+
+        moveable.addEventListener('mouseout', () => {
+        moveable.style.right = '-146px';
+        });
+
+        var aiIcon=document.querySelector(".aiicon");
+        var chatGPT=document.querySelector(".chatgpt");
+        var isChatGPTVisible=false;
+        if(isChatGPTVisible==false){
+            chatGPT.style.display="none";
+        }
+
+        aiIcon.addEventListener("click",function(){
+            if(isChatGPTVisible){
+                chatGPT.style.display="none";
+            }else{
+                chatGPT.style.display="block";
+            }
+            isChatGPTVisible=!isChatGPTVisible;
+        })
+
+        var messageBox=document.querySelector("#robot");
+        var idx=null;//会话ID
+        var messageId=999;//一个用户的key消息ID
+        var chat=document.querySelector(".chat");//获取chat元素对象
+        messageBox.onkeydown=async function(event){//键盘按键按下事件
+				var code=event.keyCode;//当键盘按下的时候获取键盘的码号// console.log('键盘按下事件==>',code)
+				if(code!=13) return;//当按下非enter的时候return 返回结果.//后面的代码是按下enter键的时候会执行的代码.
+				var myMessage=messageBox.value;//获取输入框的值
+
+				//创建my元素对象及图片和消息
+				var myElement=document.createElement("div");
+					myElement.className="my";
+				var myImg=document.createElement("img");
+					myImg.src="./img/user.webp";
+				var myMessageElement=document.createElement("div");
+					myMessageElement.innerText=myMessage;
+					myElement.appendChild(myMessageElement);
+					myElement.appendChild(myImg);
+					chat.appendChild(myElement);
+
+				messageBox.disabled=true;//禁用输入框
+				var response=await fetch(`https://chatgpt.quxuetrip.com/api/mock/send?&stream=true&idx=${idx}&messageId=${messageId}&single=true`,
+				{method:"get",//请求方法是get方法
+				headers:{message:encodeURI(myMessage)}//发送输入的数据到服务器
+				});
+				var reader=response.body.getReader();//获取一个数据流读取器
+				
+				var messageString='';//定义一个字符串存储返回的结果
+				//创建ai元素节点
+				var aiElement=document.createElement("div");
+				var aiImg=document.createElement("img");
+					aiImg.src="./img/AI.webp";
+				var aiMessageElement=document.createElement("div");
+					aiMessageElement.innerText=messageString;
+					aiElement.appendChild(aiImg);
+					aiElement.appendChild(aiMessageElement);
+					aiElement.className="ai";
+					chat.appendChild(aiElement);
+
+				while(true){
+					var readResult=await reader.read();//在读取器里面取出当前得到的二进制数据流
+					var done=readResult.done;//是否读取完成 读完以后是true
+					var value=readResult.value;//获取读取的二进制数据流
+					if(done) break;//数据是否读取完成 如果完成就中止循环
+					var b=new Blob([value.buffer]);//创建一个二进制对象
+					var r=new FileReader();//创建一个文件读取器
+						r.readAsText(b,'utf-8');//把二进制对象通过文件读取器作为utf-8文本读取出来
+						r.onload=function(e){
+							console.log('读取的结果==>',e.target.result);
+							if(e.target.result.includes("YNZ5XF4XNFPWNZ")){
+								var idArray=e.target.result.split("YNZ5XF4XNFPWNZ");
+								idx=idArray[1];
+								messageId='YNZ5XF4XNFPWNZ';
+								messageBox.removeAttribute("disabled");
+								messageBox.value="";
+								return;
+							}
+							messageString+=e.target.result;
+							aiMessageElement.innerText=messageString;
+							chat.scrollTo({top:999999})
+						}
+				}
+			
+			}
+
+
+
+        //显示正在播放的歌曲名字
+        var currentMusicSpan=document.querySelector('span');
+
+        //轮播图
+        var currentImageIndex = 0;
+        var firstImage = true;
+        var carouselImage = document.getElementById("carousel_image");
+
+        //输入bv获取src
+        var bvBox = document.querySelector("#video_id");
+        var getAudioButton = document.querySelector("#get_audio");
+        var gettitle = document.querySelector("#title_text");
+        let recentTitles = [];
+
+        //播放列表显示
+        var musiclistIcon = document.querySelector(".musiclist-icon");
+        var playlist = document.querySelector(".playlist");
+        var isPlaylistVisible = false;
+
+        //播放列表切换
+        document.getElementById("switch_playlist").addEventListener("click", switchPlaylist);
+        var isRecentTitlesPlaylist = false;
+        var tpl=false;
+
+        //歌曲列表
+        var musiclist=[
+            {name:"天空之外",src:"./anni/天空之外.mp3",pic:"./1.webp",index:0},
+            {name:"黑夜问白天",src:"./anni/黑夜问白天.mp3",pic:"./2.webp",index:1},
+            {name:"如果你也听说",src:"./anni/如果你也听说.mp3",pic:"./3.webp",index:2},
+            {name:"月半小夜曲",src:"./anni/月半小夜曲.mp3",pic:"./4.webp",index:3}
+        ];
+
+        //上一首和下一首和控制
+        var prevsong=document.querySelector(".prev_song");
+        var nextsong=document.querySelector(".next_song");
+        var playpause = document.querySelector(".play-pause");
+        var playIcon = document.querySelector(".play-icon");
+        var pauseIcon = document.querySelector(".pause-icon");
+        let currentIndex=0;
+
+        // 点击歌曲
+        var t=false;
+        var musicUL=document.querySelector(".playlist");
+        var audio=document.querySelector("audio");
+        var musicPicture=document.querySelector(".musicPicture");
+
+        //显示音量
+        var volumeBar = document.getElementById("volume");
+        var volumeValue = document.getElementById("volume-value");
+
+        //显示进度条
+        var progress = document.getElementById("progress");
+
+        var recentSearch=[];
+
+        progress.addEventListener("input", () => {
+        const value = (progress.value - progress.min) / (progress.max - progress.min) * 100;
+        });
+
+        audio.addEventListener('error',() => {
+            nextSong();
+            console.error;
+        })
+ 
+        document.getElementById("prev_image").addEventListener("click", () => {
+        if (recentTitles.length > 0) {
+            currentImageIndex = (currentImageIndex - 1 + recentTitles.length) % recentTitles.length;
+            displayCarouselImage();
+        }
+        });
+
+        document.getElementById("next_image").addEventListener("click", () => {
+        if (recentTitles.length > 0) {
+            // 当前图片索引加1，然后对recentTitles数组的长度求余数
+            // 这样可以确保当到达最后一张图片时，索引会回到0（数组的第一个元素）
+            currentImageIndex = (currentImageIndex + 1) % recentTitles.length;
+            displayCarouselImage();
+        }
+        });
+
+        bvBox.onkeydown = async function (event) {
+            // 按键按下事件
+            var code = event.keyCode;
+            if (code != 13) return;
+            // 后面的代码按下enter键的时候会执行的代码
+            await fetchAudio();
+        };
+
+        document.getElementById("get_audio").addEventListener("click", async () => {
+            //按钮事件
+            await fetchAudio();
+        });
+
+        //播放列表显示
+        musiclistIcon.addEventListener("click", function () {
+            if (isPlaylistVisible) {
+                playlist.style.display = "none";
+            } else {
+                playlist.style.display = "block";
+            }
+            isPlaylistVisible = !isPlaylistVisible;
+        });
+
+        prevsong.addEventListener("click", () => {
+            if(tpl==true){ // 如果当前播放的是最近播放的歌曲
+                // 根据最近播放的歌曲列表切换到上一首歌曲
+                currentIndex = recentTitles.findIndex(
+                (item) => `https://audiobill.443123790.workers.dev/${item.bvid}` === audio.src
+            );
+            let newIndex = (currentIndex - 1 + recentTitles.length) % recentTitles.length;
+            playSongByIndex(newIndex); // 使用 playSongByIndex 函数播放前一首歌曲
+        }else{
+            currentIndex--;
+            if (currentIndex < 0) {
+                currentIndex = musiclist.length - 1;
+            }
+            playSongByIndex(currentIndex);
+        }});
+
+        nextsong.addEventListener("click", () => {
+            if(tpl==true){
+                currentIndex = recentTitles.findIndex(
+                (item) => `https://audiobill.443123790.workers.dev/${item.bvid}` === audio.src
+            );
+            let newIndex = (currentIndex + 1) % recentTitles.length;
+            playSongByIndex(newIndex);
+            }else{
+                currentIndex++;
+                if (currentIndex >= musiclist.length) {
+                    currentIndex = 0;
+                }
+                playSongByIndex(currentIndex);
+            }});
+            
+        //点击切换播放暂停和控制旋转
+        playpause.addEventListener("click", function () {
+            // 获取当前图片的旋转角度
+            var style = window.getComputedStyle(musicPicture);
+            var transformValue = style.getPropertyValue('transform');
+            var matrixValues = transformValue.split(/\(|\)|,/);
+            rotationAngle = Math.round(Math.atan2(matrixValues[1], matrixValues[0]) * (180 / Math.PI));
+            if (audio.currentSrc == "") {
+                console.log(audio.src);
+                audio.src = musiclist[0].src;
+                musicPicture.src = musiclist[0].pic;
+            }
+            if(t==false)
+            {
+                audio.play();
+                playIcon.style.display = "block";
+                pauseIcon.style.display = "none";
+                //musicPicture.classList.add("rotate"); 
+                // 恢复动画并设置起始角度
+                musicPicture.style.animation = `roll 6s linear infinite`;
+                musicPicture.style.animationPlayState = 'running';
+                musicPicture.style.transform = `rotate(${rotationAngle}deg)`;
+                t=true;
+
+            }
+            else{
+                audio.pause();
+                playIcon.style.display = "none";
+                pauseIcon.style.display = "block";
+                // 停止动画
+                musicPicture.style.animationPlayState = 'paused';
+                t=false;
+            }
+        });
+
+        //默认列表
+        musiclist.forEach(function(value){
+            var musicLi=document.createElement("li");
+                musicLi.innerText=value.name;
+                musicUL.appendChild(musicLi);
+                musicLi.onclick=function(){
+                    audio.src=value.src;
+                    audio.play();
+                    musicPicture.classList.add("rotate");
+                    playIcon.style.display = "block";
+                    pauseIcon.style.display = "none";
+                    t=true;
+                    musicPicture.src=value.pic;
+                    currentMusicSpan.innerText="正在播放："+value.name;
+                }
+        });
+
+        audio.addEventListener("timeupdate", function () {
+            document.getElementById("current-time").innerText = formatTime(audio.currentTime);
+            progress.value = (audio.currentTime / audio.duration) * parseInt(progress.max);//paseInt（progress.max）获取整数的进度条宽度
+        });
+
+        audio.addEventListener("loadedmetadata", function () {
+            document.getElementById("total-time").innerText = formatTime(audio.duration);
+            progress.setAttribute("max", parseInt(progress.clientWidth));
+        });
+
+        progress.addEventListener("input", function () {
+            audio.currentTime = (progress.value / parseInt(progress.max)) * audio.duration;
+        });
+
+
+        audio.volume = 0.3; // 设置初始音量
+
+        volumeBar.addEventListener("input", function () {
+            audio.volume = volumeBar.value / 100;
+            volumeValue.innerText = volumeBar.value;
+        });
+
+        var pressaddlist=document.getElementById("addlist");
+        const playlistElement = document.querySelector(".playlist");
+
+        pressaddlist.addEventListener("click",function () {
+            addToRecentTitles(tempsearch[0].title,tempsearch[0].bvid,tempsearch[0].picurl,tempsearch[0].tlength)
+            switchPlaylist();
+            switchPlaylist();
+        })
+
+
+        gettitle.addEventListener("click",function(){
+                audio.src = 'https://audiobill.443123790.workers.dev/' +tempsearch[0].bvid;
+                audio.play();
+                playIcon.style.display = "block";
+                pauseIcon.style.display = "none";
+                currentMusicSpan.innerText="正在播放："+tempsearch[0].title;
+                musicPicture.classList.add("rotate"); 
+                t=true;
+                clickDisplayPic(tempsearch[0].picurl);
+                musicPicture.src = tempsearch[0].picurl;
+            })
+
+
+
+
+
+        //<---------------------函数------------------------->
+
+        function displayCarouselImage() {
+        if (recentTitles.length > 0) {
+            if (firstImage) { // 如果是第一张图片，直接渐入
+            firstImage = false;
+            carouselImage.src = recentTitles[currentImageIndex].picurl;
+            carouselImage.style.opacity = 1; // 将opacity的值设置为1，实现渐入
+            } else if (carouselImage.src != recentTitles[currentImageIndex].picurl) { // 如果图片不同，先渐出，再渐入
+            carouselImage.style.opacity = 0; // 先将opacity的值设置为0，实现渐出
+            setTimeout(function() {
+                carouselImage.src = recentTitles[currentImageIndex].picurl;
+                carouselImage.style.opacity = 1; // 再将opacity的值设置为1，实现渐入
+            }, 1000); // 等待1秒后再切换图片
+            }
+        } else { // 如果没有图片了，渐出
+            carouselImage.style.opacity = 0;
+            setTimeout(function() {
+            carouselImage.src = "";
+            }, 1000);
+        }
+        }
+
+        function clickDisplayPic(picsrc) {
+            carouselImage.style.opacity = 0; // 先将opacity的值设置为0，实现渐出
+            setTimeout(function() {
+                carouselImage.src= picsrc;
+                carouselImage.style.opacity = 1; // 再将opacity的值设置为1，实现渐入
+            }, 1000); // 等待1秒后再切换图片
+        }
+
+        // 当数组有新元素时更新轮播图
+        function updateCarousel() {
+        currentImageIndex = 0;
+        displayCarouselImage();
+        }
+
+        //歌单数组
+        function addToRecentTitles(title, bvid, picurl, index) {
+            // 检查 recentTitles 中是否存在相同的标题
+            const isDuplicate = recentTitles.some(item => item.title === title);
+
+            // 如果标题不重复，则将其添加到 recentTitles 数组中
+            if (!isDuplicate) {
+                recentTitles.unshift({ title: title, bvid: bvid , picurl: picurl , index: index });
+                if (recentTitles.length > 30) {
+                recentTitles.pop();
+                }
+            }
+            //displayRecentTitles();
+            updateCarousel();
+        }
+
+        function displayRecentTitles() {
+            recentSearch.unshift({ title: tempsearch[0].title, bvid: tempsearch[0].bvid , picurl: tempsearch[0].picurl , index: tempsearch[0].tlength })
+            const recentTitlesElement = document.getElementById("recentTitles");
+            recentTitlesElement.innerHTML = "";
+            for (const item of recentSearch) {
+                const titleElement = document.createElement("li");
+                titleElement.textContent = item.title;
+                titleElement.addEventListener("click", () => {
+                    bvBox.value = item.bvid;
+                    //currentMusicSpan.innerText="正在播放：",title;
+                    // fetchAudio();
+                });
+                recentTitlesElement.appendChild(titleElement);
+            }
+        }
+
+        var tempsearch=[];
+        //搜索的函数
+        async function fetchAudio() {
+            var bvid = bvBox.value;
+            bvBox.disabled = true; //禁用输入
+            getAudioButton.disabled = true; //禁用按钮
+            getAudioButton.textContent = "请求中..."; // 更改按钮文本
+            var url = 'https://audiobill.443123790.workers.dev/' + bvid;
+            const audioPlayer = document.getElementById("audio_player");
+            // audioPlayer.src = url;
+            console.log(url);
+            await new Promise(r => setTimeout(r, 1000)); // 添加一个 1 秒的延迟
+            getAudioButton.disabled = false; // 启用按钮
+            getAudioButton.textContent = "获取音频"; // 更新按钮文本
+            bvBox.disabled = false; // 启用输入框
+            const IURL = `https://getinf-autobili-efuwopwugh.cn-shenzhen.fcapp.run/${bvid}`;
+            const response = await fetch(IURL);
+            const inf = await response.json(); // 解析为纯文本格式
+            console.log(inf);
+            // title = inf.split(",")[0];
+            // picurl = inf.split(",")[1];
+            title = inf[0];
+            picurl = inf[1];
+            // musicPicture.src = picurl;//显示图片
+            console.log(title);
+            console.log(picurl);
+            // currentMusicSpan.innerText="正在播放：",title;
+            gettitle.textContent = title;
+            let tlength=recentTitles.length;
+            tempsearch=[{title,bvid,picurl,tlength}];
+            console.log(tempsearch);
+            //addToRecentTitles(title,bvid,picurl,recentTitles.length); // 添加标题和BV号还有图片到 recentTitles 数组中
+            displayRecentTitles(); // 显示最近的标题列表
+        }
+
+        function switchPlaylist() {
+            //const playlistElement = document.querySelector(".playlist");
+            playlistElement.innerHTML = "";
+
+            if (isRecentTitlesPlaylist) {
+                //显示默认的歌单
+                tpl=false;
+                musiclist.forEach(function (value) {
+                    var musicLi = document.createElement("li");
+                    musicLi.innerText = value.name;
+                    playlistElement.appendChild(musicLi);
+                    musicLi.onclick = function () {
+                        audio.src = value.src;
+                        audio.play();
+                        musicPicture.classList.add("rotate");
+                        playIcon.style.display = "block";
+                        pauseIcon.style.display = "none";
+                        musicPicture.style.animationPlayState = 'running';
+                        t = true;
+                        musicPicture.src = value.pic;
+                        currentMusicSpan.innerText="正在播放："+value.name;
+                    };
+                });
+            } else {
+                //显示最近的视频标题的歌单
+                tpl=true;
+                for (const item of recentTitles) {
+                    const titleElement = document.createElement("li");
+                    const deleteIcon = document.createElement("span");
+                    deleteIcon.className = "delete";
+                    deleteIcon.addEventListener("click", () => {
+                    recentTitles = recentTitles.filter((value) => value.title !== item.title);
+                    titleElement.remove();
+                    if(event.target==deleteIcon) {
+                        event.stopPropagation();
+                        return null;
+                    }
+                    });
+                    titleElement.textContent = item.title;
+                    titleElement.appendChild(deleteIcon);
+                    titleElement.addEventListener("click", () => {
+                        audio.src = `https://audiobill.443123790.workers.dev/${item.bvid}`;
+                        audio.play();
+                        currentMusicSpan.innerText="正在播放："+item.title;
+                        musicPicture.classList.add("rotate");
+                        playIcon.style.display = "block";
+                        pauseIcon.style.display = "none";
+                        musicPicture.style.animationPlayState = 'running';
+                        t = true;
+                        musicPicture.src = item.picurl;
+                        clickDisplayPic(item.picurl);
+                    });
+                    playlistElement.appendChild(titleElement);
+                }
+            }
+            //切换状态
+            isRecentTitlesPlaylist = !isRecentTitlesPlaylist;
+        }
+
+        function playSongByIndex(index) {
+            console.log("index:", index); // 输出当前播放的音乐的索引
+            console.log("tpl:", tpl); // 输出当前的歌单类型
+            console.log("musiclist:", musiclist); // 输出歌曲列表
+        if (tpl==true) {
+            if(t==true){
+            audio.src = 'https://audiobill.443123790.workers.dev/' + recentTitles[index].bvid;
+            audio.play();
+            musicPicture.classList.add("rotate");
+            playIcon.style.display = "block";
+            pauseIcon.style.display = "none";
+            musicPicture.src = recentTitles[index].picurl;
+            clickDisplayPic(recentTitles[index].picurl);
+            currentMusicSpan.innerText="正在播放："+recentTitles[index].title;
+        }else{
+            musicPicture.src = recentTitles[index].picurl;
+            clickDisplayPic(recentTitles[index].picurl);
+        }
+        }else{
+            if(t==true){
+                audio.src = musiclist[index].src;
+                audio.play();
+                musicPicture.classList.add("rotate");
+                playIcon.style.display = "block";
+                pauseIcon.style.display = "none";
+                musicPicture.src = musiclist[index].pic;
+                currentMusicSpan.innerText="正在播放："+musiclist[index].name;
+            }else{
+                musicPicture.src = musiclist[index].pic;
+            }
+        }
+        }
+
+        function nextSong() {
+            if(tpl==true){
+                currentIndex = recentTitles.findIndex(
+                (item) => `https://audiobill.443123790.workers.dev/${item.bvid}` === audio.src
+            );
+            let newIndex = (currentIndex + 1) % recentTitles.length;
+            playSongByIndex(newIndex);
+            }else{
+                currentIndex++;
+                if (currentIndex >= musiclist.length) {
+                    currentIndex = 0;
+                }
+                playSongByIndex(currentIndex);
+            }
+        }
+
+        function formatTime(seconds) {
+            var minutes = Math.floor(seconds / 60); // 计算分钟数
+            var seconds = Math.floor(seconds % 60); // 计算秒数
+            return (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
+            //使用三元运算符 condition ? value1 : value2 将分钟数和秒数格式化为 mm:ss 的形式，
+            //并返回该字符串作为函数的结果。如果分钟数或秒数小于 10，则在其前面加上一个零，以保证格式的一致性。
+        }
+
+        function saveToJson() {
+        const json = JSON.stringify(recentTitles);
+        const blob = new Blob([json], {type: "application/json"}); // 创建一个 Blob 对象，将 JSON 字符串作为数据传入
+        const url = URL.createObjectURL(blob);  // 使用 URL.createObjectURL() 方法创建一个 URL，用于下载 Blob 对象
+        const a = document.createElement("a");  // 创建一个链接元素 a
+        a.href = url;  // 将下载链接的 URL 赋值给该元素的 href 属性
+        a.download = "recentTitles.json";
+        document.body.appendChild(a);
+        a.click();  // 模拟点击该元素进行下载
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);  // 使用 URL.revokeObjectURL() 方法释放 URL 对象
+        }
+
+        function importFromJson() {
+        const fileInput = document.getElementById("importFile"); // 获取文件选择框元素
+        fileInput.click();  // 模拟点击该元素打开文件选择框
+        fileInput.addEventListener("change", () => {  // 监听文件选择框的 change 事件
+        const file = fileInput.files[0];  // 获取用户选择的文件
+        const reader = new FileReader(); // 创建一个 FileReader 对象
+        reader.onload = () => {  // 当文件加载完成时执行以下操作
+        const json = JSON.parse(reader.result);  // 将文件内容解析为 JSON 格式的对象
+        recentTitles = json;
+        updateCarousel();
+        switchPlaylist();
+        switchPlaylist();
+        }
+        reader.readAsText(file); // 以文本格式读取用户选择的文件
+        });
+        }
+    </script>
+</body>
+</html>

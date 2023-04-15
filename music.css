@@ -1,0 +1,488 @@
+        html {
+            height: 100%;
+            background-image: url("img/backg.png");
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center center;
+        }
+
+        body{
+            margin: 0px;padding: 0px;
+            height: 100%;
+            margin: 0;
+            position: relative;
+            overflow: hidden;
+            right: 0px;
+        }
+
+        button {
+            background-color: rgba(255, 255, 255, 0.5);/* 设置背景颜色 */
+            border: none; /* 去掉边框 */
+            color: white; /* 设置文字颜色 */
+            padding: 6px; /* 设置内边距 */
+            text-align: center; /* 文字居中 */
+            text-decoration: none; /* 去掉下划线 */
+            display: inline-block; /* 设置为行内块 */
+            font-size: 16px; /* 设置文字大小 */
+            margin: 15px 10px; /* 设置外边距 */
+            cursor: pointer; /* 设置鼠标悬停 */
+            border-radius: 10px;
+            box-shadow: 0px 0px 5px #ccc;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover{
+            background-color: #ccb7b7a8;
+        }
+
+        .BilibiliAudio{
+            margin-left: 50px;
+            max-width: 600px;
+            max-height: 860px;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0px 0px 10px #ccc;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        #video_id{
+            background-color: rgba(255, 255, 255, 0.4666);
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            color: #000000;
+            font-size: 16px;
+            width: 150px;
+            padding: 10px;
+        }
+
+        input[type=text]::placeholder {
+            color: #000000;
+          }
+
+        #title_text{
+            position: relative;
+            max-width: 400px;
+            margin: 0 auto;
+            cursor: pointer;
+        }
+
+        #title_text:hover::before {
+            content: "播放";
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 18px;
+            width: 30px;
+            padding: 5px;
+            background-color: #333;
+            color: #fff;
+            border-radius: 5px;
+            font-size: 12px;
+          }
+
+        .addlistpic{
+            position: relative;
+            right: -495px;
+            top: -26px;
+            cursor: pointer;
+            width: 60px;
+        }
+
+        .addlistpic:hover::before {
+            content: "加入歌单";
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 18px;
+            width: 50px;
+            padding: 5px;
+            background-color: #333;
+            color: #fff;
+            border-radius: 5px;
+            font-size: 12px;
+          }
+
+        #recentTitles {
+            list-style-type: none;
+            padding: 0;
+            margin: auto;
+            max-height: 520px;
+            width: 400px;
+            border: 1px solid #ccc;
+            text-align: center;
+            overflow-y: scroll;
+          }
+
+        ::-webkit-scrollbar{
+        width: 6px; /* 设置滚动条的宽度 */
+        height: 6px; /* 设置滚动条的高度 */
+        background-color: transparent; /* 设置滚动条底部的颜色 */
+        }
+
+        ::-webkit-scrollbar-thumb{
+        background-color: rgba(255, 255, 255, 0.5); /* 设置拖动块的颜色 */
+        border-radius: 3px; /* 设置拖动块的圆角 */
+        }
+
+        ::-webkit-scrollbar-thumb:hover{
+            background-color: #ccb7b7a8;
+        }
+          
+          #recentTitles li {
+            margin: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            background-color: transparent;
+          }
+          
+          #recentTitles li:hover {
+            background-color: #f0f0f0;
+          }
+
+        .carousel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            right: 53px;
+            top: -51px;
+            background-color: rgba(0, 0, 0, 0.2);
+            align-items: center;
+            overflow: hidden;
+            height: 700px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px #473636;
+          }
+          
+          .carousel-control {
+            cursor: pointer;
+            background-color: rgba(255, 255, 255, 0.5);
+            transition: background-color 0.3s ease;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 0 10px;
+            color: white;
+            position: relative;
+          }
+
+          .carousel-control:hover {
+            background-color: #ccb7b7a8;
+          }
+
+          #prev_image:hover::before {
+            content: "上一张";
+            position: absolute;
+            top: -20px;
+            left: 0;
+            height: 16px;
+            width: 40px;
+            padding: 5px;
+            background-color: #333;
+            color: #fff;
+            border-radius: 5px;
+            font-size: 12px;
+          }
+
+          #next_image:hover::before {
+            content: "下一张";
+            position: absolute;
+            top: -20px;
+            left: -10px;
+            height: 16px;
+            width: 40px;
+            padding: 5px;
+            background-color: #333;
+            color: #fff;
+            border-radius: 5px;
+            font-size: 12px;
+          }
+          
+          
+          .carousel-image {
+            width: 960px;
+            height: 600px;
+            font-size: 40px;
+            color: white;
+            object-fit: contain;
+            margin: 0 10px;
+          }
+
+        .aiicon{
+            float: right;
+            position: absolute;
+            top: 810px;
+            width: 240px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0px 0px 10px #473636;
+            border-radius: 30px;
+            background-color: rgba(0, 0, 0, 0.2);
+            right: -146px;
+            transition: right 2s ease;
+        }
+
+        .aiiconpic{
+            object-fit: contain;
+            width: 60px;
+            height: 60px;
+        }
+
+        .chatgpt{
+            width: 1000px;
+            height: 800px;
+            background-color: rgba(255, 255, 255, 0.4);
+            position: absolute;
+            top: 78px;
+            right: 170px;
+            box-shadow: 0px 0px 10px #ccc;
+            border-radius: 10px;
+            z-index: 9999;
+        }
+
+        .chat{
+            width: 100%;
+            /* 设置上下的外间距为0 左右居中*/
+            margin: 0px auto;
+            height: 750px;
+            /* 内容超出之后自动处理 */
+            overflow: auto;
+        }
+
+        .my{
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding-top: 10px;
+        }
+
+        .ai{
+            display: flex;
+            align-items: center;
+            padding-top: 10px;
+        }
+
+        .my>div,.ai>div{
+            background-color: gray;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 10px;
+            max-width: 800px;
+        }
+
+        .sendMessage{
+            /* background-color: #5f5454; */
+            margin-top: 0px;
+            top: 0px;
+            position: relative;
+            text-align: center;
+            padding: 10px 0px;
+        }
+        
+        .sendMessage>input{
+            width: 400px;
+            height: 30px;
+            border-radius: 20px;
+            color: #000000;
+            border: none;
+            outline: none;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding-left: 20px;
+        }
+
+        .player{
+            width: 100%;
+            margin: 0px;
+            height: 54px;
+            background-color: #5f5454;
+            position: fixed;
+            /* 开启固定定位 */
+            bottom: 0px;
+            display: flex;
+            /* 子元素开启flex布局 */
+            justify-content: center;
+            /* 设置里面的子元素主轴(x)居中对齐 */
+            align-items: center;
+            /* 交叉轴（y）对齐 */
+        }
+
+        .currentMusicBigBox{
+            right: 1400px;
+            position: absolute;
+            display: block;
+            width: 480px;
+            padding: 6px;
+            padding-left: 10px;
+            padding-right: 10px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            box-shadow: 0px 0px 5px #ccc;
+        }
+
+        .currentMusicBox {
+            overflow: hidden;
+          }
+          
+          .currentMusic {
+            display: inline-block;
+            white-space: nowrap;
+            animation: scroll 24s linear infinite;
+          }
+          
+          @keyframes scroll {
+            0% {transform: translateX(0);}
+            25% {transform: translateX(-110%);}
+            50% {transform: translateX(0);}
+            75% {transform: translateX(+110%);}
+            100% {transform: translateX(0);}
+        }
+
+        .center{
+            right: -111px;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .volume-container{
+            position: relative;
+            width: 100px;
+            right: 100px;
+            display: flex;
+            align-items: center;
+        }
+
+        .time{
+            display: flex;
+            align-items: center;
+        }
+
+        span{
+            margin: 0px 2px;
+            color: white;
+        }
+
+        img{
+            width: 30px;
+            height: 30px;
+            margin: 0px 5px;
+        }
+
+        .musicP,.play-pause{
+            position: relative;
+            width: 50px;
+            height: 30px;
+        }
+
+        .musicPicture{
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            top: -30px;
+            margin: 0px;
+            border-radius: 25px;
+            /* 设置圆角的半径 */
+            /* animation: roll 0.5s infinite; */
+        }
+
+        .play-icon,.pause-icon,.play-pause{
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            top: -15px;
+            margin: 0px;
+        }
+
+        .playlist {
+            position: absolute;
+            width: 350px;
+            margin: 0;padding: 0;
+            background-color: transparent;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            display: none;
+            max-height: 310px;
+            overflow-y: scroll;
+            bottom: 45px; /* 调整位置，使其显示在播放器控制栏的上方 */
+            list-style-type: none;
+            text-align: center;
+            right: 0px;
+        }
+
+        .playlist li{
+            margin: 10px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            background-color: transparent;
+        }
+
+        .playlist span{
+            background-image: url("./icon/deleteicontran.png");
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            background-size: cover;
+            background-position: center;
+            position:absolute;
+            right: 19px;
+        }
+
+        .playlist-container {
+            position: relative;
+            right: -400px;
+            display: inline-block; /* 使div的大小自适应其内容 */
+            cursor: pointer;
+        }
+
+        .playlist-container:hover::before {
+            content: "歌单";
+            position: absolute;
+            top: -20px;
+            left: 0;
+            padding: 5px;
+            background-color: #333;
+            color: #fff;
+            border-radius: 5px;
+            font-size: 12px;
+          }
+
+        .musiclist{
+            right: 0;
+        }
+
+        .playlist li:hover {
+            background-color: #5a5151;
+        }
+
+        .rotate {
+            animation: roll 6s linear infinite;
+        }
+
+        .progress-container {
+            width: 300px;
+        }
+
+        .progress-bar{
+            width: 100%;
+        }
+
+        #switch_playlist{
+            position:relative;
+            right: -400px;
+        }
+
+        @keyframes roll{
+            0%{transform: rotate(0deg);}
+            100%{transform: rotate(360deg);}
+        }
